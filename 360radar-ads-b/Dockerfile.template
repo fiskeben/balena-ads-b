@@ -1,0 +1,25 @@
+FROM balenalib/%%BALENA_ARCH%%-debian:stretch as run
+LABEL maintainer="https://github.com/ketilmo"
+
+ENV LOGPATH=/dev/console
+ENV RECEIVER_HOST=dump1090-fa
+ENV RECEIVER_PORT=30002
+
+RUN apt-get update && \
+	apt-get install -y php7.0-cli wget cron && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN wget http://radar.lowflyingwales.co.uk/files/rpi/360r-install.txt
+RUN mv 360r-install.txt 360r-install.sh
+RUN sh ./360r-install.sh
+
+RUN sed -i 's|$host="127.0.0.1"|$host=getenv("RECEIVER_HOST")|g' /usr/bin/360r-adsb/360r-adsb.php
+RUN sed -i 's|$port=30002|$port=getenv("RECEIVER_PORT")|g' /usr/bin/360r-adsb/360r-adsb.php  
+RUN sed -i 's|"/var/log/360r-adsb.log"|getenv("LOGPATH")|g' /usr/bin/360r-adsb/360r-monitor.php
+
+RUN rm 360r-install.sh
+
+COPY start.sh /
+RUN chmod +x /start.sh
+
+ENTRYPOINT ["/start.sh"]

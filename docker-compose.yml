@@ -3,28 +3,6 @@ volumes:
   settings:
   radarbox:
 services:
-  kiosk:
-    restart: always
-    build: ./balena-dash/kiosk
-    privileged: true
-    ports:
-      - 8081:8080
-    volumes:
-      - 'settings:/data'
-  wifi-connect:
-    build: ./balena-dash/wifi-connect
-    restart: always
-    network_mode: host
-    privileged: true
-    environment:
-      - PORTAL_LISTENING_PORT=8181
-      - PORTAL_SSID=balenaWiFi
-      - PORTAL_PASSPHRASE=balenaWiFi
-    ports:
-      - "8181:8181"
-    labels:
-      io.balena.features.dbus: '1'
-      io.balena.features.firmware: '1'
   frontend-proxy:
     image: traefik
     build: ./traefik
@@ -211,6 +189,16 @@ services:
       - '30154'
       - '30157'
       - '31003'
+  360radar-mlat-client:
+    depends_on:
+      - dump1090-fa
+    build: ./mlat-client
+    image: mlat-client
+  360radar-ads-b:
+    depends_on:
+      - dump1090-fa
+    build: ./360radar-ads-b
+    image: 360radar-ads-b
 # Optional: Uncomment to enable custom mlat server.
 #  mlat-client:
 #    depends_on:
