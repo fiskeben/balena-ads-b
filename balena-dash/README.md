@@ -1,6 +1,6 @@
-![balenaDash](https://www.balena.io/blog/content/images/2019/03/balenaDash_logo.png)
+![balenaDash](https://raw.githubusercontent.com/balenalabs/balena-dash/master/assets/balenaDash_logo.png)
 
-Try our simple [balenaCloud](https://www.balena.io/cloud) starter project to set up a Raspberry Pi and LCD or monitor to display any webpage or web-based dashboard. We’re creatively calling it balenaDash! Follow along with our guide to get up and running in under 30 minutes.
+Try our simple [balenaCloud](https://www.balena.io/cloud) starter project to set up a Raspberry Pi and LCD or monitor to display any webpage or web-based dashboard. We’re calling it balenaDash! Follow along with our guide to get up and running in under 30 minutes.
 
 - [Introduction](#introduction)
 - [Hardware required](#hardware-required)
@@ -13,7 +13,7 @@ Try our simple [balenaCloud](https://www.balena.io/cloud) starter project to set
 
 This is the perfect introductory project to try out [balenaCloud](https://www.balena.io/cloud) and see how everything works.
 
-At the most basic level, this project allows you to display any webpage using a lightweight web browser. This means that you can build a device dedicated to showing anything that runs in a normal web browser. It will boot up and automatically start displaying your content.
+At the most basic level, this project allows you to display any webpage using a lightweight web browser. This means that you can build a device dedicated to showing anything that runs in a normal web browser. It will boot up and automatically and display your content.
 
 Some examples of what you could use this for include:
 
@@ -43,14 +43,15 @@ The list of items you’ll need is also included below:
 - Power supply
 - Case (optional)
 
-![](https://www.balena.io/blog/content/images/2018/11/image17.jpg)
+![](https://raw.githubusercontent.com/balenalabs/balena-dash/master/assets/hardware.jpg)
 
 ## Setup and configuration
 
 You can deploy this app to a new balenaCloud fleet in one click using the button below:
+
 [![](https://balena.io/deploy.svg)](https://dashboard.balena-cloud.com/deploy?repoUrl=https://github.com/balenalabs/balena-dash)
 
-Or, you can create a fleet in your balenaCloud dashboard and `balena push` this code to it the traditional way. Just be aware that balenaDash requires that you allocate more memory to the GPU. This is achieved by adding (or editing the existing) the **Device configuration variable** `BALENA_HOST_CONFIG_gpu_mem`, for this project we recommend setting it to `128`.
+Or, you can create a Fleet in your balenaCloud dashboard and `balena push` this code to it the traditional way. Just be aware that balenaDash requires that you allocate more memory to the GPU. This is achieved by adding (or editing the existing) the **Device configuration variable** `BALENA_HOST_CONFIG_gpu_mem`, for this project we recommend setting it to `128`.
 
 ### Official Raspberry Pi 7-inch display
 
@@ -101,9 +102,13 @@ To use WiFi Connect you need to join the `balenaDash` network and you should see
 To configure the URL displayed by webkit, set the **`LAUNCH_URL`** environment
 variable. If nothing is set, balenaDash will display the [browser block](https://github.com/balenablocks/browser#choosing-what-to-display) local webpage.
 
-### Switching URLs quickly using your web browser or Slack
+### Switching URLs quickly using your web browser
 
-Your balenaDash device is also running a small webserver on port 8080. The screen will show the URL configured at `LAUNCH_URL` normally, but the webserver allows you to put other URLs on screen quickly and easily. If you tell balenaCloud to expose your device's public URL, then you can even control it with Slack (or `curl`, or anything that can use webhooks). [More details](https://github.com/mozz100/tohora/blob/master/README.md)
+Your balenaDash device is also running a small webserver on port 8080. The web page can be loaded by navigating your browser to the device's local IP address. 
+
+In the 'reported' section you can click 'Refresh' and find out what URL the browser is displaying, whether the GPU is enabled, whether the browser is using kiosk mode, the version of Chromium and the flags being used.
+
+In the 'Request' section you can set the URL, KIOSK mode, enable or disable the GPU and set the browser to automatically refresh on a given interval.
 
 ## Automate backlight switching
 

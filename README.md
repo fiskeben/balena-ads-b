@@ -47,7 +47,7 @@ Contribute to the flight tracking community! Feed your local ADS-B data from an 
 
 ## Credits
 
-The balena-ads-b project is created and maintained by [Ketil Moland Olsen](https://github.com/ketilmo/balena-ads-b/edit/master/README.md).
+The balena-ads-b project is created and maintained by [Ketil Moland Olsen](https://github.com/ketilmo/).
 
 It's inspired by and has borrowed code from the following repos and forum threads:  
 
@@ -60,9 +60,16 @@ It's inspired by and has borrowed code from the following repos and forum thread
 
 Thanks to [compujuckel](https://github.com/compujuckel/), [Glenn Stewart](https://bitbucket.org/inodes/), [wercsy](https://github.com/wercsy/), [mikenye](https://github.com/mikenye/), [abcd567a](https://github.com/abcd567a) and [marcelstoer](https://github.com/marcelstoer) for sharing!
 
-Thanks to [garethhowell](https://github.com/garethhowell) for implementing ADSB Exchange support.
+Thanks to [garethhowell](https://github.com/garethhowell) for implementing the initial ADSB Exchange support, and to [wiedehopf](https://github.com/wiedehopf/) for improving it.
 
 Thanks to [rmorillo24](https://github.com/rmorillo24/) for verifying balenaFin compability, to [adaptive](https://github.com/adaptive/) for confirming Raspberry Pi 400 compability, and to [alanb128](https://github.com/alanb128) for confirming that the UAT implementation works in the US.
+
+Software packages that are downloaded, installed, and configured by the balena-ads-b script are disclosed in [CREDITS.md](https://github.com/ketilmo/balena-ads-b/blob/master/CREDITS.md).
+
+## Contributors
+<a href="https://github.com/ketilmo/balena-ads-b/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ketilmo/balena-ads-b" />
+</a>
 
 ## Table of Contents
 - [Part 1 – Build the receiver](#part-1--build-the-receiver)
@@ -82,9 +89,10 @@ Thanks to [rmorillo24](https://github.com/rmorillo24/) for verifying balenaFin c
 - [Part 7 – Configure RadarBox](#part-7--configure-radarbox)
   * [Alternative A: Port an existing RadarBox receiver](#alternative-a-port-an-existing-radarbox-receiver)
   * [Alternative B: Setup a new RadarBox receiver](#alternative-b-setup-a-new-radarbox-receiver)
-- [Part 8 - Configure ADSB Exchange](#part-8---configure-adsb-exchange)
+- [Part 8 – Configure ADSB Exchange](#part-8--configure-adsb-exchange)
 - [Part 9 – Exploring flight traffic locally on your device](#part-9--exploring-flight-traffic-locally-on-your-device)
-- [Part 10 - (Optional) Add a digital display](#part-10---optional-add-a-digital-display)
+- [Part 10 – (Optional) Add a digital display](#part-10--optional-add-a-digital-display)
+- [Part 11 – Updating to the latest version](#part-11--updating-to-the-latest-version)
 
 ## Part 1 – Build the receiver
 
@@ -274,13 +282,13 @@ If you have not previously set up a RadarBox receiver that you want to reuse, do
  9. Next, you might be asked to enter your feeder's location and altitude *above the ground.* Enter the same values that you entered in the `LAT` and `LON` variables earlier. When asked for the antenna's altitude, specify it i meters (or feet) *above the ground* – NOT above sea level as done previously. If you are not asked to enter this information, you can do it manually by clicking the *Edit* link under your receiver's ID on the left-hand side of the screen. 
  10. Finally, verify that RadarBox is receiving data from your receiver. You'll find your receiver by clicking on the *Account* menu at [radarbox.com](https://www.radarbox.com) , under the *Stations* accordion. 
 
-## Part 8 - Configure ADSB Exchange
+## Part 8 – Configure ADSB Exchange
 
 1. Head back to your device's page on the balena dashboard. Inside the *Terminal* section, click *Select a target*, then *adsb-exchange*, and finally *Start terminal session*. This will open a terminal which lets you interact directly with your ADSB Exchange container.
 2. At the prompt, type `/usr/local/share/adsbexchange-stats/create-uuid.sh` followed by return. Your ADSB-Exchange UUID is displayed. Note it down.
 3. At the same prompt, type `/create-sitename.sh` followed by return. Enter a friendly name for your feeder as per the instructions on screen (e.g. your location). Hit return and note down the result.
 4. Click on the *Device Variables*-button. Add a variable named `ADSB_EXCHANGE_UUID` with the value from step 2.
-5. Click on the *Device Variables*-button. Add a variable named `ADSB_EXCHANGE_SITENAME` with the value from step 2.
+5. Click on the *Device Variables*-button. Add a variable named `ADSB_EXCHANGE_SITENAME` with the value from step 3.
 6. Restart the *adsb-exchange* service under *Services* by clicking the "cycle" icon next to the service names.
 7. Next, wait a minute or two for the service to restart and head over to ADSB Exchange's 
 [Feeder Status](https://www.adsbexchange.com/myip/) page from a PC on the same network as the feeder. Verify that your feeder is shown as registered and that ADSB Exchange is receiving your feed and mlat data. You can also verify your feeder's performance at the [ADSB Exchange Feeder Map](https://map.adsbexchange.com/mlat-map/) by searching for you sitename.
@@ -301,7 +309,14 @@ It's similar to Dump1090, but Plane Finder adds 3D visualization and other nice 
 **Flightradar24 Status Page**
 Less visual than the two other options, Flightradar24's status page gives you high level statistics and a metrics about how your feeder is doing. Head to `YOURIP:8754` to check it out. When remote, open balena's *Public Device URL* and add `/fr24feed/` to the tail end of the URL, e.g. `https://6g31f15653bwt4y251b18c1daf4qw164.balena-devices.com/fr24feed/`
 
-## Part 10 - (Optional) Add a digital display
+## Part 10 – (Optional) Add a digital display
 balena also produces a project that can be easily configured to display a webpage in kiosk mode on a digital display called balenaDash. By dropping that project into this one, we can automatically display a feeder page directly from the Pi. Ensure you have cloned this repository recursively (`git clone --recursive {{repository URL}}`). We can then set a `LAUNCH_URL` device variable configured to connect to `http://{{YOURIP or YOURSERVICENAME}}:YOURSERVICEPORT` (where the service/port are one of the frontends above, like `http://planefinder:30053`) and that will automatically be displayed on the attached display. The balenaDash service can be configured locally by accessing the webserver on port 8081.
+
+## Part 11 – Updating to the latest version
+Updating to the latest version is trivial. If you installed balena-ads-b using the blue Deploy with balena-button, you can click it again and overwrite your current application. All settings will be preserved. For convenience, the button is right here:
+
+[![Deploy with button](https://www.balena.io/deploy.svg)](https://dashboard.balena-cloud.com/deploy?repoUrl=https://github.com/ketilmo/balena-ads-b&defaultDeviceType=raspberrypi4-64)
+
+If you used the git clone method, pull the changes from the master branch and push the update to your application with the balena CLI. For complete instructions, have a look at [Part 2 – Setup balena and configure the device](#part-2--setup-balena-and-configure-the-device).
 
 Enjoy!

@@ -43,7 +43,7 @@ echo " "
 # Variables are verified – continue with startup procedure.
 
 # Start mlat-client and put it in the background.
-/usr/bin/mlat-client --input-type dump1090 --input-connect $RECEIVER_HOST:$RECEIVER_PORT --lat $LAT --lon $LON --alt $ALT --user $MLAT_CLIENT_USER --server $MLAT_SERVER &
+/usr/local/share/mlat-client/venv/bin/mlat-client --input-type dump1090 --no-udp --input-connect "$RECEIVER_HOST":"$RECEIVER_PORT" --server $MLAT_SERVER --user $MLAT_CLIENT_USER --lat "$LAT" --lon "$LON" --alt "$ALT" --results basestation,listen,31003 --results beast,listen,30157 &
 
 # Wait for any services to exit.
 wait -n 
