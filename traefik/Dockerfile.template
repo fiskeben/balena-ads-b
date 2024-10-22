@@ -1,4 +1,4 @@
-FROM balenalib/%%BALENA_ARCH%%-debian:bullseye AS base
+FROM balenalib/%%BALENA_ARCH%%-debian:bookworm AS base
 LABEL maintainer="https://github.com/ketilmo"
 
 EXPOSE 80 8080 443
@@ -12,7 +12,8 @@ RUN apt update && \
 
 FROM base AS buildstep
 
-ARG TRAEFIK_VERSION=2.8.1
+# renovate: datasource=github-releases depName=traefik/traefik versioning=loose
+ARG TRAEFIK_VERSION=3.1.6
 ARG TEMP_INSTALL="wget"
 
 COPY traefik_installer.sh /tmp

@@ -20,9 +20,7 @@ missing_variables=false
         
 # Begin defining all the required configuration variables.
 
-[ -z "$PLANEFINDER_SHARECODE" ] && echo "Plane Finder Sharecode is missing, will abort startup." && missing_variables=true || echo "Plane Finder Sharecode is set: $PLANEFINDER_SHARECODE"
-[ -z "$LAT" ] && echo "Receiver latitude is missing, will abort startup." && missing_variables=true || echo "Receiver latitude is set: $LAT"
-[ -z "$LON" ] && echo "Receiver longitude is missing, will abort startup." && missing_variables=true || echo "Receiver longitude is set: $LON"
+[ -z "$WINGBITS_DEVICE_ID" ] && echo "Wingbits Device ID is missing, will abort startup." && missing_variables=true || echo "Wingbits Device ID is set: $WINGBITS_DEVICE_ID"
 [ -z "$RECEIVER_HOST" ] && echo "Receiver host is missing, will abort startup." && missing_variables=true || echo "Receiver host is set: $RECEIVER_HOST"
 [ -z "$RECEIVER_PORT" ] && echo "Receiver port is missing, will abort startup." && missing_variables=true || echo "Receiver port is set: $RECEIVER_PORT"
 
@@ -40,13 +38,29 @@ fi
 echo "Settings verified, proceeding with startup."
 echo " "
 
+# Check if Wingbits is latest version
+
+local_version=$(cat /etc/wingbits/version)
+echo "Current local version: $local_version"
+
+SCRIPT_URL="https://gitlab.com/wingbits/config/-/raw/master/download.sh"
+script=$(curl $SCRIPT_URL)
+version=$(echo "$script" | grep -oP '(?<=WINGBITS_CONFIG_VERSION=")[^"]*')
+echo "Latest available wingbits version: $version"
+
+if [ "$version" != "$local_version" ] || [ -z "$version" ]; then
+    echo "WARNING: You are not running the latest Wingbits version. Please update at your earliest convenience."
+else
+    echo "Wingbits is up to date"
+fi
+
+echo " "
+
 # Variables are verified – continue with startup procedure.
 
-# Configure Planefinder according to environment variables.
-envsubst < /etc/pfclient-config.json.tpl> /etc/pfclient-config.json
-
-# Start pfclient and put it in the background.
-/usr/bin/pfclient --config_path=/etc/pfclient-config.json --log_path=/dev/console &
+# Start vector and readsb and put in the background.
+/usr/bin/vector --watch-config &
+/usr/bin/feed-wingbits --net --net-only --debug=n --quiet --net-connector localhost,30006,json_out --write-json /run/wingbits-feed --net-beast-reduce-interval 0.5 --net-heartbeat 60 --net-ro-size 1280 --net-ro-interval 0.2 --net-ro-port 0 --net-sbs-port 0 --net-bi-port 30154 --net-bo-port 0 --net-ri-port 0 --net-connector "$RECEIVER_HOST","$RECEIVER_PORT",beast_in 2>&1 | stdbuf -o0 sed --unbuffered '/^$/d' |  awk -W interactive '{print "[readsb-wingbits]     " $0}' &
 
 # Wait for any services to exit.
 wait -n

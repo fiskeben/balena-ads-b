@@ -21,16 +21,18 @@ RUN apt update && \
 
 FROM base AS buildstep
 
-ARG READSB_COMMIT=b796b82c8ef716a2b02163a7427fcf9d323daed6
-ARG MLAT_TAG=v0.3.9
-ARG TEMP_INSTALL="git build-essential debhelper libncurses5-dev zlib1g-dev python3-dev libzstd-dev"
+# renovate: datasource=github-tags depName=wiedehopf/readsb versioning=loose
+ARG READSB_VERSION=v3.14.1642
+# renovate: datasource=github-tags depName=adsb-related-code/mlat-client versioning=loose
+ARG MLAT_VERSION=v0.4.2
+ARG TEMP_INSTALL="git build-essential debhelper libncurses5-dev zlib1g-dev python3-dev libzstd-dev pkg-config"
 
 WORKDIR /tmp
 
 RUN apt update && \
 	apt install -y $TEMP_INSTALL
 
-RUN git clone --depth 1 --branch $MLAT_TAG https://github.com/adsbxchange/mlat-client.git && \
+RUN git clone --depth 1 --branch $MLAT_VERSION https://github.com/adsb-related-code/mlat-client && \
 	cd mlat-client && \
     python3 -m venv /usr/local/share/adsbexchange/venv/ && \	
     /usr/local/share/adsbexchange/venv/bin/python3 setup.py build && \	
@@ -38,9 +40,9 @@ RUN git clone --depth 1 --branch $MLAT_TAG https://github.com/adsbxchange/mlat-c
 
 WORKDIR /tmp
 
-RUN git clone --single-branch https://github.com/adsbxchange/readsb.git && \
+RUN git clone --single-branch https://github.com/wiedehopf/readsb.git && \
 	cd readsb && \
-	git checkout $READSB_COMMIT && \
+	git checkout tags/${READSB_VERSION} && \
 	make -j3 AIRCRAFT_HASH_BITS=14
 
 WORKDIR /tmp
@@ -52,7 +54,7 @@ RUN git clone --depth 1 https://github.com/adsbxchange/adsbexchange-978 /usr/loc
 
 WORKDIR /tmp
 
-RUN git clone --single-branch --depth 1 --branch master https://github.com/adsbxchange/uat2esnt.git && \
+RUN git clone --single-branch --depth 1 --branch master https://github.com/adsb-related-code/uat2esnt && \
 	cd uat2esnt && \
 	make -j3 uat2esnt
 

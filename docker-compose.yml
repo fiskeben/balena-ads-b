@@ -1,20 +1,49 @@
-version: '2'
+version: '2.4'
 volumes:
   settings:
   radarbox:
 services:
+  kiosk:
+    restart: unless-stopped
+    build: ./kiosk
+    privileged: true
+    ports:
+      - 8081:8080
+    volumes:
+      - 'settings:/data'
+    labels:
+      io.balena.features.supervisor-api: '1'
+  wifi-connect:
+    build: ./wifi-connect
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
+      - PORTAL_LISTENING_PORT=8181
+      - PORTAL_SSID=balenaWiFi
+      - PORTAL_PASSPHRASE=balenaWiFi
+      - ACTIVITY_TIMEOUT=180
+    ports:
+      - "8181:8181"
+    cap_add:
+      - NET_ADMIN
+    labels:
+      io.balena.features.dbus: '1'
+      io.balena.features.supervisor-api: '1'
   frontend-proxy:
     image: traefik
     build: ./traefik
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
     labels:
       io.balena.features.balena-socket: '1'
+      io.balena.features.supervisor-api: '1'
   dump1090-fa:
     build: ./dump1090-fa
     image: dump1090-fa
-    restart: always
+    restart: unless-stopped
+    privileged: true
     environment:
       - LAT=
       - LON=
@@ -43,6 +72,7 @@ services:
       - "30106:30106"
       - "8080:8080"
     labels:
+      - "io.balena.features.supervisor-api=1"
       - "traefik.enable=true"
       # New, permanent redirect (from 13 March 2021)
       - "traefik.http.routers.skyaware.rule=PathPrefix(`/skyaware`)"
@@ -60,7 +90,7 @@ services:
   dump978-fa:
     build: ./dump978-fa
     image: dump978-fa
-    restart: always
+    restart: unless-stopped
     environment:
       - LAT=
       - LON=
@@ -77,6 +107,7 @@ services:
       - "30979:30979"
       - "8978:8978"
     labels:
+      - "io.balena.features.supervisor-api=1"
       - "traefik.enable=true"
       - "traefik.http.routers.dump978-fa.rule=PathPrefix(`/skyaware978`)"
       - "traefik.http.routers.dump978-fa.middlewares=dump978-fa-redirect"
@@ -88,21 +119,24 @@ services:
       - dump1090-fa
     build: ./piaware
     image: piaware
-    restart: always
+    restart: unless-stopped
     environment:
       - FLIGHTAWARE_FEEDER_ID=
       - DUMP978_ENABLED=false
+    labels:
+      io.balena.features.supervisor-api: '1'
   fr24feed:
     depends_on:
       - dump1090-fa
     build: ./fr24feed
     image: fr24feed
-    restart: always
+    restart: unless-stopped
     ports:
       - "8754:8754"
     environment:
       - FR24_KEY=
     labels:
+      - "io.balena.features.supervisor-api=1"
       - "traefik.enable=true"
       - "traefik.http.routers.fr24feed.rule=PathPrefix(`/fr24feed`)"
       - "traefik.http.routers.fr24feed-a.rule=Path(`/logo.png`)"
@@ -114,6 +148,10 @@ services:
       - "traefik.http.routers.fr24feed-g.rule=Path(`/jquery.js`)"
       - "traefik.http.routers.fr24feed-h.rule=Path(`/flights.json`)"
       - "traefik.http.routers.fr24feed-i.rule=Path(`/shutdown.html`)"
+      - "traefik.http.routers.fr24feed-j.rule=Path(`/logs.json`)"
+      - "traefik.http.routers.fr24feed-k.rule=Path(`/shutdown.bin`)"
+      - "traefik.http.routers.fr24feed-l.rule=Path(`/restart.bin`)"
+      - "traefik.http.routers.fr24feed-m.rule=Path(`/config.json`)"
       - "traefik.http.routers.fr24feed.middlewares=fr24feed-redirect,fr24feed-stripprefix"
       - "traefik.http.middlewares.fr24feed-redirect.redirectregex.regex=^.*/fr24feed$$"
       - "traefik.http.middlewares.fr24feed-redirect.redirectregex.replacement=/fr24feed/"
@@ -124,10 +162,11 @@ services:
       - dump1090-fa
     build: ./planefinder
     image: planefinder
-    restart: always
+    restart: unless-stopped
     ports:
       - "30053:30053"
     labels:
+      - "io.balena.features.supervisor-api=1"
       - "traefik.enable=true"
       - "traefik.http.routers.planefinder.rule=PathPrefix(`/planefinder`)"
       - "traefik.http.routers.planefinder-a.rule=PathPrefix(`/`)"
@@ -151,16 +190,18 @@ services:
       - dump1090-fa
     build: ./opensky-network
     image: opensky-network
-    restart: always
+    restart: unless-stopped
     environment:
       - OPENSKY_USERNAME=
       - OPENSKY_SERIAL=
+    labels:
+      io.balena.features.supervisor-api: '1'
   radarbox:
     depends_on:
       - dump1090-fa
     build: ./radarbox
     image: radarbox
-    restart: always
+    restart: unless-stopped
     expose:
       - "32088"
     environment:
@@ -172,13 +213,15 @@ services:
     volumes:
       - 'radarbox:/sys/class/thermal:ro'
       - 'radarbox:/var/radarbox/thermal'
+    labels:
+      io.balena.features.supervisor-api: '1'
   adsb-exchange:
     depends_on:
       - dump1090-fa
     build:
       context: ./adsb-exchange
     image: adsb-exchange
-    restart: always
+    restart: unless-stopped
     environment:
       ADSB_EXCHANGE_SITENAME: ''
       ADSB_EXCHANGE_UUID: ''
@@ -189,28 +232,43 @@ services:
       - '30154'
       - '30157'
       - '31003'
-  360radar-mlat-client:
+    labels:
+      io.balena.features.supervisor-api: '1'
+  wingbits:
     depends_on:
       - dump1090-fa
-    build: ./mlat-client
-    image: mlat-client
-  360radar-ads-b:
-    depends_on:
-      - dump1090-fa
-    build: ./360radar-ads-b
-    image: 360radar-ads-b
+    build: ./wingbits
+    image: wingbits
+    restart: unless-stopped
+    environment:
+      - WINGBITS_DEVICE_ID=
+      - LAT=
+      - LON=
+    expose:
+      - '30154'
+    labels:
+      io.balena.features.supervisor-api: '1'
+  autohupr:
+    build: ./autohupr
+    tmpfs:
+      - /tmp/work
+    labels:
+      io.balena.features.balena-api: '1'
+      io.balena.features.supervisor-api: '1'
 # Optional: Uncomment to enable custom mlat server.
 #  mlat-client:
 #    depends_on:
 #      - dump1090-fa
 #    build: ./mlat-client
 #    image: mlat-client
-#    restart: always
+#    restart: unless-stopped
 #    environment:
 #      - LAT=
 #      - LON=
 #      - ALT=
 #      - MLAT_CLIENT_USER=
+#    labels:
+#      io.balena.features.supervisor-api: '1'
 
 
     

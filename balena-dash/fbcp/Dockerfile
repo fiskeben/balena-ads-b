@@ -1,1 +1,0 @@
-FROM bhcr.io/balenablocks/fbcp/1.0.2
